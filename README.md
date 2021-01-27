@@ -6,3 +6,13 @@ This repository provides code to pre-process and train on data from the [ARAS Da
 H. Alemdar, H. Ertan, O.D. Incel, C. Ersoy, ARAS Human Activity Datasets in Multiple Homes
 with Multiple Residents, Pervasive Health, Venice, May 2013. 
 ```
+
+The ```dataset_preprocessing.py``` file allows you to select which house you wish to generate a dataset for. Once run, the script will generate (non-shuffled) files: ```all.csv.```, ```train.csv```, and ```test.csv``` inside the ```datasets/house/x``` directory. The following parameters are configurable, but are set to these defaults:
+* House B is the default house
+* Train/test split is 70/30
+* The labels for the second resident are removed, leaving 20 features and a single label for the first residents
+
+The ```skmultiflow_run.py``` file implements training on streaming data with various models (currently: Hoeffding Tree Classifier and Naïve Bayes). It takes command line arugments for: model type, training sample limit, and test sample limit. Usage: ```python3 skmultiflow_run.py model train_limit test_limit```, example usage: ```python3 skmultiflow_run.py ht 0 0```, where options are:
+* ```model```: nb, ht
+* ```train_limit```: 0 to use all available data, else uses specified amount
+* ```test_limit```: 0 to use all available data, else uses specified amount
