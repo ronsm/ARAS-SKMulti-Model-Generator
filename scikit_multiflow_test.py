@@ -7,17 +7,27 @@ from skmultiflow.bayes import NaiveBayes
 import colorama
 from colorama import Fore, Style
 import pickle
+import sys
 
 class ScikitMultiflowTest(object):
     def __init__(self):
         self.startup_msg()
         self.id = 'scikit_multiflow_test'
 
-        self.training_file = 'datasets/aras/b/train.csv'
-        self.test_file = 'datasets/aras/b/test.csv'
+        # set the dataset to a or b
+        self.dataset = 'b'
 
-        self.training_limit = 40000
-        self.testing_limit = 500000
+        if self.dataset == 'a':
+            self.training_file = 'datasets/aras/a/train.csv'
+            self.test_file = 'datasets/aras/a/test.csv'
+        elif self.dataset == 'b':
+            self.training_file = 'datasets/aras/b/train.csv'
+            self.test_file = 'datasets/aras/b/test.csv'
+        else:
+            self.log('Invalid dataset. Check configuration.')
+
+        self.training_limit = 5000000
+        self.testing_limit = 5000000
 
     # Dataset
 
@@ -152,6 +162,17 @@ class ScikitMultiflowTest(object):
 
         return ht
 
+    def set_train_test_limits(self, train, test):
+        if train == 0:
+            self.training_limit = 5000000
+        else:
+            self.training_limit = train
+
+        if test == 0:
+            self.testing_limit = 5000000
+        else:
+            self.testing_limit = test
+
     def startup_msg(self):
         print(Fore.YELLOW + '* * * * * * * * * * * * * * * * * *')
         print()
@@ -172,16 +193,24 @@ if __name__ == "__main__":
 
     stream = smt.load_and_test_dataset(smt.training_file)
 
-    ht = smt.train_hoeffding_tree(stream)
-    smt.save_model(ht)
-    ht = smt.load_model()
-    stream = smt.load_and_test_dataset(smt.test_file)
-    predictions = smt.predict_hoeffding_tree(ht, stream)
+    train_limit = int(sys.argv[2])
+    test_limit = int(sys.argv[3])
 
-    # nb = smt.train_naive_bayes(stream)
-    # smt.save_model(nb)
-    # nb = smt.load_model()
-    # stream = smt.load_and_test_dataset(smt.test_file)
-    # predictions = smt.predict_naive_bayes(nb, stream)
+    smt.set_train_test_limits(train_limit, test_limit)
+
+    if sys.argv[1] == "ht":
+        ht = smt.train_hoeffding_tree(stream)
+        smt.save_model(ht)
+        ht = smt.load_model()
+        stream = smt.load_and_test_dataset(smt.test_file)
+        predictions = smt.predict_hoeffding_tree(ht, stream)
+    elif sys.argv[1] == "nb":
+        nb = smt.train_naive_bayes(stream)
+        smt.save_model(nb)
+        nb = smt.load_model()
+        stream = smt.load_and_test_dataset(smt.test_file)
+        predictions = smt.predict_naive_bayes(nb, stream)
+    else:
+        smt.log('Invalid model type.')
 
     smt.assess_performance(predictions)
