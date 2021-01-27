@@ -7,7 +7,7 @@ H. Alemdar, H. Ertan, O.D. Incel, C. Ersoy, ARAS Human Activity Datasets in Mult
 with Multiple Residents, Pervasive Health, Venice, May 2013. 
 ```
 
-The purpose of this software is to enable real-time predictions from multiple models on streaming data from the ARAS dataset, to simulate a real smart home. These models together form a committee of learners and are used as part of an active learning process (code not published).
+The purpose of this software is to enable real-time predictions from multiple models on streaming data from the ARAS dataset, to simulate a real smart home.
 
 ## Usage
 
