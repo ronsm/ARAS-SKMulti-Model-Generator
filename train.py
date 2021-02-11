@@ -3,6 +3,7 @@ import numpy as np
 from skmultiflow.data.file_stream import FileStream
 from skmultiflow.trees import HoeffdingTreeClassifier
 from skmultiflow.trees import HoeffdingTreeRegressor
+from skmultiflow.meta import OnlineRUSBoostClassifier 
 from skmultiflow.bayes import NaiveBayes
 import colorama
 from colorama import Fore, Style
@@ -19,15 +20,12 @@ class ScikitMultiflowTest(object):
 
         if self.dataset == 'a':
             self.training_file = 'datasets/aras/a/train.csv'
-            self.test_file = 'datasets/aras/a/test.csv'
         elif self.dataset == 'b':
             self.training_file = 'datasets/aras/b/train.csv'
-            self.test_file = 'datasets/aras/b/test.csv'
         else:
             self.log('Invalid dataset. Check configuration.')
 
         self.training_limit = 5000000
-        self.testing_limit = 5000000
 
     # Dataset
 
@@ -71,23 +69,6 @@ class ScikitMultiflowTest(object):
 
         return nb
 
-    def predict_naive_bayes(self, nb, stream):
-        self.log('Making predictions with Naive Bayes...')
-
-        n_samples = 0
-
-        predictions = []
-
-        while (n_samples < self.num_samples and stream.has_more_samples()) and (n_samples < self.testing_limit):
-            X, y = stream.next_sample()
-            y_pred = nb.predict(X)
-            predictions.append(y_pred[0])
-            n_samples = n_samples + 1
-            if (n_samples % 1000) == 0:
-                print('Number of samples processed: ', n_samples)
-
-        return predictions
-
     # Hoeffding Tree
 
     def train_hoeffding_tree(self, stream):
@@ -116,62 +97,43 @@ class ScikitMultiflowTest(object):
 
         return ht
 
-    def predict_hoeffding_tree(self, ht, stream):
-        self.log('Making predictions with Hoeffding Tree...')
+    # RUS Boost
+
+    def train_rus_boost(self, stream):
+        self.log('Training RUSBoost...')
+
+        rb = OnlineRUSBoostClassifier()
 
         n_samples = 0
+        correct_cnt = 0
 
-        predictions = []
-
-        while (n_samples < self.num_samples and stream.has_more_samples()) and (n_samples < self.testing_limit):
+        while (n_samples < self.num_samples and stream.has_more_samples()) and (n_samples < self.training_limit):
             X, y = stream.next_sample()
-            y_pred = ht.predict(X)
-            predictions.append(y_pred[0])
+            y_pred = rb.predict(X)
+            if y[0] == y_pred[0]:
+                correct_cnt = correct_cnt + 1
+            rb.partial_fit(X, y, classes=stream.target_values)
             n_samples = n_samples + 1
             if (n_samples % 1000) == 0:
-                print('Number of samples processed: ', n_samples)
+                print('RUSBoost accuracy: {}'.format(correct_cnt / n_samples), n_samples)
 
-        return predictions
+        print('{} samples analyzed'.format(n_samples))
+        print('Online RUSBoost performance: {}'.format(correct_cnt / n_samples))
 
-    # Assessment
-
-    def assess_performance(self, predictions):
-        self.log('Assessing performance...')
-        df = pd.read_csv(self.test_file)
-
-        y_true = df['R1'].to_list()
-
-        correct_cnt = 0
-        for i in range(0, len(predictions)):
-            if predictions[i] == y_true[i]:
-                correct_cnt = correct_cnt + 1
-
-        score = correct_cnt / len(predictions)
-        msg = 'Percent correct (accuracy): ' + str(score)
-        self.log(msg)
+        return rb
 
     # Utilities 
 
-    def save_model(self, ht):
+    def save_model(self, model, name):
         self.log('Saving model...')
-        pickle.dump(ht, open("save.p", "wb"))
+        save_file = name + '.p'
+        pickle.dump(model, open(save_file, "wb"))
 
-    def load_model(self):
-        self.log('Loading model...')
-        ht = pickle.load(open("save.p", "rb"))
-
-        return ht
-
-    def set_train_test_limits(self, train, test):
+    def set_train_limit(self, train):
         if train == 0:
             self.training_limit = 5000000
         else:
             self.training_limit = train
-
-        if test == 0:
-            self.testing_limit = 5000000
-        else:
-            self.testing_limit = test
 
     def startup_msg(self):
         print(Fore.YELLOW + '* * * * * * * * * * * * * * * * * *')
@@ -193,24 +155,19 @@ if __name__ == "__main__":
 
     stream = smt.load_and_test_dataset(smt.training_file)
 
-    train_limit = int(sys.argv[2])
-    test_limit = int(sys.argv[3])
+    train_limit = int(sys.argv[1])
 
-    smt.set_train_test_limits(train_limit, test_limit)
+    smt.set_train_limit(train_limit)
 
-    if sys.argv[1] == "ht":
-        ht = smt.train_hoeffding_tree(stream)
-        smt.save_model(ht)
-        ht = smt.load_model()
-        stream = smt.load_and_test_dataset(smt.test_file)
-        predictions = smt.predict_hoeffding_tree(ht, stream)
-    elif sys.argv[1] == "nb":
-        nb = smt.train_naive_bayes(stream)
-        smt.save_model(nb)
-        nb = smt.load_model()
-        stream = smt.load_and_test_dataset(smt.test_file)
-        predictions = smt.predict_naive_bayes(nb, stream)
-    else:
-        smt.log('Invalid model type.')
+    rb = smt.train_rus_boost(stream)
+    smt.save_model(rb, 'RUSBoost')
 
-    smt.assess_performance(predictions)
+    stream = smt.load_and_test_dataset(smt.training_file)
+
+    ht = smt.train_hoeffding_tree(stream)
+    smt.save_model(ht, 'HoeffdingTree')
+
+    stream = smt.load_and_test_dataset(smt.training_file)
+    
+    nb = smt.train_naive_bayes(stream)
+    smt.save_model(nb, 'NaiveBayes')

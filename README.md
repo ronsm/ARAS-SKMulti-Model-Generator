@@ -16,7 +16,5 @@ The ```dataset_preprocessing.py``` file allows you to select which house you wis
 * Train/test split is 70/30
 * The labels for the second resident are removed, leaving 20 features and a single label for the first residents
 
-The ```skmultiflow_run.py``` file implements training on streaming data with various models (currently: Hoeffding Tree Classifier and Naïve Bayes). It takes command line arugments for: model type, training sample limit, and test sample limit. Usage: ```python3 skmultiflow_run.py model train_limit test_limit```, example usage: ```python3 skmultiflow_run.py ht 0 0```, where options are:
-* ```model``` : nb, ht
+The ```train.py``` file implements training on streaming data with various models (currently: Hoeffding Tree Classifier, Naïve Bayes, and RUS Boost). It takes command line arugments for training sample limits. Usage: ```python3 train.py model train_limit```, example usage: ```python3 skmultiflow_run.py 0```, where options are:
 * ```train_limit``` : 0 to use all available data, else uses specified amount
-* ```test_limit``` : 0 to use all available data, else uses specified amount
