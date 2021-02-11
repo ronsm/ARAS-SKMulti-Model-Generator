@@ -1,4 +1,4 @@
-# ARAS Streaming Data Classifier
+# ARAS SKMulti Model Generator
 
 This repository provides code to pre-process and train on data from the [ARAS Dataset](https://www.cmpe.boun.edu.tr/aras/), which includes 30 days of binary sensor data from two smart homes. Citation below.
 
