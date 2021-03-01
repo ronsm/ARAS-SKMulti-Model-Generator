@@ -26,8 +26,8 @@ class DatasetPreprocessing(object):
         self.dataset_days = self.dataset_root + 'days/'
         self.output_file = self.dataset_root + 'all.csv'
         self.output_file_train = self.dataset_root + 'train.csv'
-        self.output_file_test_AL = self.dataset_root + 'test_AL.csv'
-        self.output_file_test_unseen = self.dataset_root + 'test_unseen.csv'
+        self.output_file_test_AL = self.dataset_root + 'test.csv'
+        self.output_file_test_unseen = self.dataset_root + 'validation.csv'
 
     def get_paths(self):
         self.log('Getting paths...')

@@ -1,9 +1,12 @@
 datasets/aras/a/all.csv
 datasets/aras/a/train.csv
 datasets/aras/a/test.csv
+datasets/aras/a/validation.csv
 datasets/aras/b/all.csv
 datasets/aras/b/train.csv
 datasets/aras/b/test.csv
+datasets/aras/b/validation.csv
 .vscode
 datasets/aras/paper.pdf
 model_training.py
+*.p

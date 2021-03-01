@@ -11,9 +11,9 @@ The purpose of this software is to enable real-time predictions from multiple mo
 
 ## Usage
 
-The ```dataset_preprocessing.py``` file allows you to select which house you wish to generate a dataset for. Once run, the script will generate (non-shuffled) files: ```all.csv.```, ```train.csv```, and ```test.csv``` inside the ```datasets/house/x``` directory. The following parameters are configurable, but are set to these defaults:
+The ```dataset_preprocessing.py``` file allows you to select which house you wish to generate a dataset for. Once run, the script will generate (non-shuffled) files: ```all.csv.```, ```train.csv```, ```test.csv```, and ```validation.csv``` inside the ```datasets/house/x``` directory. The following parameters are configurable, but are set to these defaults:
 * House B is the default house
-* Train/test split is 70/30
+* Train/test/validation split is 50/25/25
 * The labels for the second resident are removed, leaving 20 features and a single label for the first residents
 
 The ```train.py``` file implements training on streaming data with various models (currently: Hoeffding Tree Classifier, Naïve Bayes, and RUS Boost). It takes command line arugments for training sample limits. Usage: ```python3 train.py model train_limit```, example usage: ```python3 skmultiflow_run.py 0```, where options are:
