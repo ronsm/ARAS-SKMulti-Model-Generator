@@ -87,7 +87,7 @@ class ScikitMultiflowTest(object):
             y_pred = ht.predict(X)
             if y[0] == y_pred[0]:
                 correct_cnt = correct_cnt + 1
-            ht = ht.partial_fit(X, y)
+            ht = ht.partial_fit(X, y, classes=stream.target_values)
             n_samples = n_samples + 1
             if (n_samples % 1000) == 0:
                 print('Hoeffding Tree accuracy: {}'.format(correct_cnt / n_samples), n_samples)

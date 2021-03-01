@@ -26,7 +26,8 @@ class DatasetPreprocessing(object):
         self.dataset_days = self.dataset_root + 'days/'
         self.output_file = self.dataset_root + 'all.csv'
         self.output_file_train = self.dataset_root + 'train.csv'
-        self.output_file_test = self.dataset_root + 'test.csv'
+        self.output_file_test_AL = self.dataset_root + 'test_AL.csv'
+        self.output_file_test_unseen = self.dataset_root + 'test_unseen.csv'
 
     def get_paths(self):
         self.log('Getting paths...')
@@ -70,13 +71,16 @@ class DatasetPreprocessing(object):
         self.log('Creating train/test files...')
         df = pd.read_csv(self.output_file)
 
-        train, test = train_test_split(df, test_size=0.3, shuffle=False)
+        train, test = train_test_split(df, test_size=0.5, shuffle=False)
 
         train = train.drop(["DAY", "R2"], axis=1)
         test = test.drop(["DAY", "R2"], axis=1)
 
+        test_AL, test_unseen = train_test_split(test, test_size=0.5, shuffle=False)
+
         train.to_csv(self.output_file_train, index=False)
-        test.to_csv(self.output_file_test, index=False)
+        test_AL.to_csv(self.output_file_test_AL, index=False)
+        test_unseen.to_csv(self.output_file_test_unseen, index=False)
 
     def startup_msg(self):
         print(Fore.YELLOW + '* * * * * * * * * * * * * * * * * *')
