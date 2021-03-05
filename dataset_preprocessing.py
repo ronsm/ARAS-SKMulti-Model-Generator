@@ -68,10 +68,10 @@ class DatasetPreprocessing(object):
         df.to_csv(self.output_file, header = self.column_headers, index=False)
 
     def split_files(self):
-        self.log('Creating train/test files...')
+        self.log('Creating train/test/validate files...')
         df = pd.read_csv(self.output_file)
 
-        train, test = train_test_split(df, test_size=0.5, shuffle=False)
+        train, test = train_test_split(df, train_size=432000, shuffle=False)
 
         train = train.drop(["DAY", "R2"], axis=1)
         test = test.drop(["DAY", "R2"], axis=1)

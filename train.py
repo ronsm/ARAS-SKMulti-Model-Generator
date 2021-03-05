@@ -1,19 +1,24 @@
 import pandas as pd
 import numpy as np
 from skmultiflow.data.file_stream import FileStream
+from skmultiflow.data.data_stream import DataStream
 from skmultiflow.trees import HoeffdingTreeClassifier
-from skmultiflow.trees import HoeffdingTreeRegressor
 from skmultiflow.meta import OnlineRUSBoostClassifier 
 from skmultiflow.bayes import NaiveBayes
+from skmultiflow.trees import ExtremelyFastDecisionTreeClassifier
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
 import colorama
 from colorama import Fore, Style
 import pickle
 import sys
+import seaborn as sns
 
 class ScikitMultiflowTest(object):
     def __init__(self):
         self.startup_msg()
-        self.id = 'scikit_multiflow_test'
+        self.id = 'train'
 
         # set the dataset to a or b
         self.dataset = 'b'
@@ -34,6 +39,41 @@ class ScikitMultiflowTest(object):
         self.log(msg)
 
         stream = FileStream(file)
+
+        X, y = stream.get_all_samples()
+
+        unique, counts = np.unique(y, return_counts=True)
+        plt.bar(unique, counts)
+        unique, counts = np.unique(y, return_counts=True)
+        plt.bar(unique, counts)
+
+        plt.title('Class Frequency')
+        plt.xlabel('Class')
+        plt.ylabel('Frequency')
+
+        plt.show()
+        
+        sampler = RandomUnderSampler(random_state=0)
+
+        X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+        X_resampled = pd.DataFrame(X_resampled)
+
+        X = X_resampled
+        y = y_resampled
+
+        unique, counts = np.unique(y, return_counts=True)
+        plt.bar(unique, counts)
+        unique, counts = np.unique(y, return_counts=True)
+        plt.bar(unique, counts)
+
+        plt.title('Class Frequency')
+        plt.xlabel('Class')
+        plt.ylabel('Frequency')
+
+        plt.show()
+
+        stream = DataStream(X, y=y)
         
         self.num_samples = stream.n_remaining_samples()
 
@@ -61,7 +101,7 @@ class ScikitMultiflowTest(object):
                 correct_cnt = correct_cnt + 1
             nb.partial_fit(X, y)
             n_samples = n_samples + 1
-            if (n_samples % 1000) == 0:
+            if (n_samples % 100) == 0:
                 print('Naive Bayes accuracy: {}'.format(correct_cnt / n_samples), n_samples)
 
         print('{} samples analyzed.'.format(n_samples))
@@ -89,7 +129,7 @@ class ScikitMultiflowTest(object):
                 correct_cnt = correct_cnt + 1
             ht = ht.partial_fit(X, y, classes=stream.target_values)
             n_samples = n_samples + 1
-            if (n_samples % 1000) == 0:
+            if (n_samples % 100) == 0:
                 print('Hoeffding Tree accuracy: {}'.format(correct_cnt / n_samples), n_samples)
 
         print('{} samples analyzed.'.format(n_samples))
@@ -114,13 +154,38 @@ class ScikitMultiflowTest(object):
                 correct_cnt = correct_cnt + 1
             rb.partial_fit(X, y, classes=stream.target_values)
             n_samples = n_samples + 1
-            if (n_samples % 1000) == 0:
+            if (n_samples % 100) == 0:
                 print('RUSBoost accuracy: {}'.format(correct_cnt / n_samples), n_samples)
 
         print('{} samples analyzed'.format(n_samples))
         print('Online RUSBoost performance: {}'.format(correct_cnt / n_samples))
 
         return rb
+
+    # Extremely Fast Decision Tree Classifier 
+
+    def train_extremely_fast_decision_tree(self, stream):
+        self.log('Training Extremely Fast Decision Tree classifier...')
+
+        edfd = ExtremelyFastDecisionTreeClassifier()
+
+        n_samples = 0
+        correct_cnt = 0
+
+        while (n_samples < self.num_samples and stream.has_more_samples()) and (n_samples < self.training_limit):
+            X, y = stream.next_sample()
+            y_pred = edfd.predict(X)
+            if y[0] == y_pred[0]:
+                correct_cnt = correct_cnt + 1
+            edfd.partial_fit(X, y, classes=stream.target_values)
+            n_samples = n_samples + 1
+            if (n_samples % 100) == 0:
+                print('Extremely Fast Decision Tree Classifier accuracy: {}'.format(correct_cnt / n_samples), n_samples)
+
+        print('{} samples analyzed'.format(n_samples))
+        print('Extremely Fast Decision Tree Classifier performance: {}'.format(correct_cnt / n_samples))
+
+        return edfd
 
     # Utilities 
 
@@ -153,21 +218,20 @@ class ScikitMultiflowTest(object):
 if __name__ == "__main__":
     smt = ScikitMultiflowTest()
 
-    stream = smt.load_and_test_dataset(smt.training_file)
-
     train_limit = int(sys.argv[1])
 
     smt.set_train_limit(train_limit)
 
-    rb = smt.train_rus_boost(stream)
-    smt.save_model(rb, 'RUSBoost')
-
     stream = smt.load_and_test_dataset(smt.training_file)
 
+    efdt = smt.train_extremely_fast_decision_tree(stream)
+    smt.save_model(efdt, 'ExtremelyFastDecisionTree')
+
+    stream.restart()
     ht = smt.train_hoeffding_tree(stream)
     smt.save_model(ht, 'HoeffdingTree')
 
+    stream.restart()
     stream = smt.load_and_test_dataset(smt.training_file)
-    
     nb = smt.train_naive_bayes(stream)
     smt.save_model(nb, 'NaiveBayes')

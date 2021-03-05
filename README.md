@@ -9,6 +9,16 @@ with Multiple Residents, Pervasive Health, Venice, May 2013.
 
 The purpose of this software is to enable real-time predictions from multiple models on streaming data from the ARAS dataset, to simulate a real smart home.
 
+## Install / Requirements
+
+To install, run these commands:
+
+```
+git clone https://github.com/ronsm/ARAS-SKMulti-Model-Generator.git
+cd /directory/where/you/cloned/to
+pip3 install -r requirements.txt
+```
+
 ## Usage
 
 The ```dataset_preprocessing.py``` file allows you to select which house you wish to generate a dataset for. Once run, the script will generate (non-shuffled) files: ```all.csv.```, ```train.csv```, ```test.csv```, and ```validation.csv``` inside the ```datasets/house/x``` directory. The following parameters are configurable, but are set to these defaults:
