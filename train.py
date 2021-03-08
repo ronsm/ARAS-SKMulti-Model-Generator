@@ -8,6 +8,7 @@ from skmultiflow.bayes import NaiveBayes
 from skmultiflow.trees import ExtremelyFastDecisionTreeClassifier
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
+from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 import colorama
 from colorama import Fore, Style
@@ -61,6 +62,8 @@ class ScikitMultiflowTest(object):
 
         X = X_resampled
         y = y_resampled
+
+        X, y = shuffle(X, y)
 
         unique, counts = np.unique(y, return_counts=True)
         plt.bar(unique, counts)
